@@ -31,10 +31,10 @@ with st.sidebar:
     with st.form("formulaire_acv"):
         w_panneaux = st.number_input("Modules PV (kWc)", min_value=0, value=1000, step=100)
         w_origine = st.selectbox("Origine des panneaux", options=["Chine", "Europe"])
-        w_onduleurs = st.number_input("Onduleurs (kW/kVA)", min_value=0.0, value=2000.0, step=100.0)
-        w_stockage = st.number_input("Stockage (kWh)", min_value=0.0, value=500.0, step=50.0)
-        w_cablage = st.number_input("Câblage (m)", min_value=0, value=1500, step=100)
-        w_pdl = st.number_input("Poste de livraison (unité)", min_value=0, value=1, step=1)
+        w_onduleurs = st.number_input("Onduleurs (kW/kVA)", min_value=0, value=1000, step=100)
+        w_stockage = st.number_input("Stockage (kWh)", min_value=0, value=0, step=50)
+        w_cablage = st.number_input("Câblage (m)", min_value=0, value=100, step=50)
+        w_pdl = st.number_input("Poste de livraison (nombre)", min_value=0, value=1, step=1)
         
         submit = st.form_submit_button("📊 Lancer l'ACV", use_container_width=True)
 
