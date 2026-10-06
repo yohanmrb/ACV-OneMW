@@ -23,6 +23,7 @@ FE_PDL_KVA = 60.0            # Poste de livraison (enveloppe béton) en kg CO2e 
 st.title("🌍 Calculateur Bilan Carbone (ACV)")
 st.markdown("**OneMW** - Outil interne d'estimation de l'impact carbone des centrales au sol.")
 st.markdown("Par Yohan Mirabel")
+st.markdown("Version 1.0 - 10/2026")
 st.divider()
 
 # --- BARRE LATÉRALE (FORMULAIRE) ---
