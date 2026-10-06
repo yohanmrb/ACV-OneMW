@@ -72,7 +72,22 @@ with col_tableau:
         "kgCO2e": valeurs
     })
     df_resultats["kgCO2e"] = df_resultats["kgCO2e"].apply(lambda x: f"{x:,.0f}".replace(',', ' '))
-    st.dataframe(df_resultats, hide_index=True, use_container_width=True)
+    
+    # --- NOUVELLES LIGNES POUR LA COULEUR ---
+    # 1. Création d'un dictionnaire liant chaque catégorie à sa couleur
+    dict_couleurs = dict(zip(categories, couleurs))
+    
+    # 2. Fonction pour colorer le fond de la ligne et mettre le texte en blanc
+    def coloriser_ligne(row):
+        couleur = dict_couleurs.get(row['Poste'], '')
+        return [f'background-color: {couleur}; color: white;' for _ in row]
+        
+    # 3. Application du style au tableau
+    df_style = df_resultats.style.apply(coloriser_ligne, axis=1)
+    
+    # 4. Affichage du tableau stylisé au lieu du tableau classique
+    st.dataframe(df_style, hide_index=True, use_container_width=True)
+    # ----------------------------------------
 
 with col_graphique:
     st.subheader("Répartition")
