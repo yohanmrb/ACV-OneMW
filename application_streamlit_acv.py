@@ -29,7 +29,7 @@ with st.sidebar:
     st.header("⚙️ Paramètres de la centrale")
     
     with st.form("formulaire_acv"):
-        w_panneaux = st.number_input("Modules PV (kWc)", min_value=0.0, value=2000.0, step=100.0)
+        w_panneaux = st.number_input("Modules PV (kWc)", min_value=0, value=1000, step=100)
         w_origine = st.selectbox("Origine des panneaux", options=["Chine", "Europe"])
         w_onduleurs = st.number_input("Onduleurs (kW/kVA)", min_value=0.0, value=2000.0, step=100.0)
         w_stockage = st.number_input("Stockage (kWh)", min_value=0.0, value=500.0, step=50.0)
