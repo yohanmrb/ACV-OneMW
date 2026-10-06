@@ -110,5 +110,12 @@ with col_graphique:
 
 st.divider()
 
-st.markdown("Par Yohan Mirabel")
-st.markdown("Version 1.0 - 10/2026")
+st.markdown(
+    """
+    <div style="display: flex; justify-content: space-between; color: gray; font-size: 0.9em;">
+        <div>Version 1.0 - 10/2026</div>
+        <div>Par Yohan Mirabel</div>
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
