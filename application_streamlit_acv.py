@@ -67,11 +67,16 @@ couleurs = ['#2ca02c', '#1f77b4', '#ff7f0e', '#7f7f7f', '#9467bd', '#8c564b']
 
 with col_tableau:
     st.subheader("Détail par poste")
+    # Conversion des valeurs en tonnes (division par 1000)
+    valeurs_tonnes = [v / 1000 for v in valeurs]
+    
     df_resultats = pd.DataFrame({
         "Poste": categories,
-        "kgCO2e": valeurs
+        "tCO2e": valeurs_tonnes
     })
-    df_resultats["kgCO2e"] = df_resultats["kgCO2e"].apply(lambda x: f"{x:,.0f}".replace(',', ' '))
+    
+    # Formatage avec 1 chiffre après la virgule pour les tonnes
+    df_resultats["tCO2e"] = df_resultats["tCO2e"].apply(lambda x: f"{x:,.1f}".replace(',', ' '))
     
     # --- NOUVELLES LIGNES POUR LA COULEUR ---
     # 1. Création d'un dictionnaire liant chaque catégorie à sa couleur
