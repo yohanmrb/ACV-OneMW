@@ -16,7 +16,7 @@ FE_PANNEAUX_EUROPE = 320.0   # Moyenne TOPCon/HJT Europe en kg CO2e / kWc
 FE_ONDULEURS_KW = 35.0       # Onduleurs de chaîne en kg CO2e / kW
 FE_STOCKAGE_KWH = 62.0       # Chimie LFP en kg CO2e / kWh
 FE_STRUCTURE_KWC = 85.0      # Structure fixe en kg CO2e / kWc
-FE_CABLAGE_KM = 320.0        # Câble DC cuivre (0.32 kg/m) en kg CO2e / km
+FE_CABLAGE_M = 0.32          # Câble DC cuivre en kg CO2e / m
 FE_PDL_KVA = 60.0            # Poste de livraison (enveloppe béton) en kg CO2e / kVA
 
 # --- EN-TÊTE DE L'APPLICATION ---
@@ -33,7 +33,7 @@ with st.sidebar:
         w_origine = st.selectbox("Origine des panneaux", options=["Chine", "Europe"])
         w_onduleurs = st.number_input("Onduleurs (kW/kVA)", min_value=0.0, value=2000.0, step=100.0)
         w_stockage = st.number_input("Stockage (kWh)", min_value=0.0, value=500.0, step=50.0)
-        w_cablage = st.number_input("Câblage (km)", min_value=0.0, value=1.5, step=0.1)
+        w_cablage = st.number_input("Câblage (m)", min_value=0, value=1500, step=100)
         w_pdl = st.number_input("Poste de livraison (unité)", min_value=0, value=1, step=1)
         
         submit = st.form_submit_button("📊 Lancer l'ACV", use_container_width=True)
@@ -47,7 +47,7 @@ impact_panneaux = w_panneaux * fe_panneaux_actuel
 impact_onduleurs = w_onduleurs * FE_ONDULEURS_KW
 impact_stockage = w_stockage * FE_STOCKAGE_KWH
 impact_structure = w_panneaux * FE_STRUCTURE_KWC  # Calculé par kWc pour simplifier
-impact_cablage = w_cablage * FE_CABLAGE_KM
+impact_cablage = w_cablage * FE_CABLAGE_M
 # L'impact du PDL est calculé par kVA, on utilise la puissance des onduleurs comme référence
 impact_pdl = w_pdl * (w_onduleurs * FE_PDL_KVA)
 
