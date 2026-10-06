@@ -3,19 +3,21 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # --- CONFIGURATION DE LA PAGE ---
-# Doit toujours être la première commande Streamlit
 st.set_page_config(
     page_title="Calculateur ACV - OneMW",
     page_icon="🌍",
     layout="centered"
 )
 
-# --- FACTEURS D'ÉMISSION PAR DÉFAUT (kgCO2e/unité) ---
-FE_PANNEAUX_KWC = 600.0
-FE_ONDULEURS_KW = 150.0
-FE_STOCKAGE_KWH = 120.0
-FE_STRUCTURE_TONNE = 2500.0
-FE_CABLAGE_KM = 3000.0
+# --- FACTEURS D'ÉMISSION (kgCO2e/unité) ---
+# Valeurs issues de la littérature scientifique (2025-2026)
+FE_PANNEAUX_CHINE = 456.7    # Moyenne des technologies (PERC, TOPCon, HJT) en kg CO2e / kWc
+FE_PANNEAUX_EUROPE = 320.0   # Moyenne TOPCon/HJT Europe en kg CO2e / kWc
+FE_ONDULEURS_KW = 35.0       # Onduleurs de chaîne en kg CO2e / kW
+FE_STOCKAGE_KWH = 62.0       # Chimie LFP en kg CO2e / kWh
+FE_STRUCTURE_KWC = 85.0      # Structure fixe en kg CO2e / kWc
+FE_CABLAGE_KM = 320.0        # Câble DC cuivre (0.32 kg/m) en kg CO2e / km
+FE_PDL_KVA = 60.0            # Poste de livraison (enveloppe béton) en kg CO2e / kVA
 
 # --- EN-TÊTE DE L'APPLICATION ---
 st.title("🌍 Calculateur Bilan Carbone (ACV)")
@@ -26,72 +28,62 @@ st.divider()
 with st.sidebar:
     st.header("⚙️ Paramètres de la centrale")
     
-    # Création d'un formulaire pour ne recalculer que lorsqu'on clique sur le bouton
     with st.form("formulaire_acv"):
         w_panneaux = st.number_input("Modules PV (kWc)", min_value=0.0, value=2000.0, step=100.0)
-        w_onduleurs = st.number_input("Onduleurs (kW)", min_value=0.0, value=2000.0, step=100.0)
+        w_origine = st.selectbox("Origine des panneaux", options=["Chine", "Europe"])
+        w_onduleurs = st.number_input("Onduleurs (kW/kVA)", min_value=0.0, value=2000.0, step=100.0)
         w_stockage = st.number_input("Stockage (kWh)", min_value=0.0, value=500.0, step=50.0)
-        w_structure = st.number_input("Structures acier (tonnes)", min_value=0.0, value=60.0, step=5.0)
-        w_cablage = st.number_input("Raccordement (km)", min_value=0.0, value=1.5, step=0.1)
+        w_cablage = st.number_input("Câblage (km)", min_value=0.0, value=1.5, step=0.1)
+        w_pdl = st.number_input("Poste de livraison (unité)", min_value=0, value=1, step=1)
         
-        # Le bouton d'exécution
         submit = st.form_submit_button("📊 Lancer l'ACV", use_container_width=True)
 
-# --- CALCULS ET AFFICHAGE (Exécuté au lancement ou au clic) ---
-# Calculs
-impact_panneaux = w_panneaux * FE_PANNEAUX_KWC
+# --- CALCULS ET AFFICHAGE ---
+# Choix du facteur d'émission des panneaux
+fe_panneaux_actuel = FE_PANNEAUX_CHINE if w_origine == "Chine" else FE_PANNEAUX_EUROPE
+
+# Calculs des impacts
+impact_panneaux = w_panneaux * fe_panneaux_actuel
 impact_onduleurs = w_onduleurs * FE_ONDULEURS_KW
 impact_stockage = w_stockage * FE_STOCKAGE_KWH
-impact_structure = w_structure * FE_STRUCTURE_TONNE
+impact_structure = w_panneaux * FE_STRUCTURE_KWC  # Calculé par kWc pour simplifier
 impact_cablage = w_cablage * FE_CABLAGE_KM
+# L'impact du PDL est calculé par kVA, on utilise la puissance des onduleurs comme référence
+impact_pdl = w_pdl * (w_onduleurs * FE_PDL_KVA)
 
-impact_total = sum([impact_panneaux, impact_onduleurs, impact_stockage, impact_structure, impact_cablage])
+impact_total = sum([impact_panneaux, impact_onduleurs, impact_stockage, impact_structure, impact_cablage, impact_pdl])
 
-# Affichage des métriques principales en haut
+# Affichage du Résultat Global (uniquement en tonnes)
 st.subheader("Résultat Global")
-col1, col2 = st.columns(2)
-with col1:
-    st.metric(label="Impact Total (tonnes CO2e)", value=f"{impact_total / 1000:,.1f}".replace(',', ' '))
-with col2:
-    st.metric(label="Impact Total (kg CO2e)", value=f"{impact_total:,.0f}".replace(',', ' '))
+st.metric(label="Impact Total (tonnes CO2e)", value=f"{impact_total / 1000:,.1f}".replace(',', ' '))
 
 st.divider()
 
-# Affichage des détails sous forme de colonnes (Tableau et Graphique)
 col_tableau, col_graphique = st.columns([1, 1.2])
 
-# Préparation des données
-categories = ['Modules PV', 'Onduleurs', 'Stockage', 'Structures', 'Câblage']
-valeurs = [impact_panneaux, impact_onduleurs, impact_stockage, impact_structure, impact_cablage]
-couleurs = ['#2ca02c', '#1f77b4', '#ff7f0e', '#7f7f7f', '#9467bd']
+categories = ['Modules PV', 'Onduleurs', 'Stockage', 'Structures', 'Câblage', 'Poste Livraison']
+valeurs = [impact_panneaux, impact_onduleurs, impact_stockage, impact_structure, impact_cablage, impact_pdl]
+couleurs = ['#2ca02c', '#1f77b4', '#ff7f0e', '#7f7f7f', '#9467bd', '#8c564b']
 
 with col_tableau:
     st.subheader("Détail par poste")
-    # Création d'un tableau propre
     df_resultats = pd.DataFrame({
         "Poste": categories,
         "kgCO2e": valeurs
     })
-    # Formatage des nombres pour plus de lisibilité
     df_resultats["kgCO2e"] = df_resultats["kgCO2e"].apply(lambda x: f"{x:,.0f}".replace(',', ' '))
     st.dataframe(df_resultats, hide_index=True, use_container_width=True)
 
 with col_graphique:
     st.subheader("Répartition")
     
-    # Filtrer les valeurs à zéro pour le graphique
     labels_filtres = [l for l, v in zip(categories, valeurs) if v > 0]
     valeurs_filtres = [v for v in valeurs if v > 0]
     couleurs_filtrees = [c for c, v in zip(couleurs, valeurs) if v > 0]
     
-    # Création du graphique camembert avec Matplotlib (fond transparent)
     fig, ax = plt.subplots(figsize=(5, 5))
-    fig.patch.set_alpha(0.0) # Fond transparent pour s'adapter au thème clair/sombre de Streamlit
+    fig.patch.set_alpha(0.0) 
     ax.pie(valeurs_filtres, labels=labels_filtres, autopct='%1.1f%%', startangle=140, colors=couleurs_filtrees, 
            textprops={'color': "white" if st.get_option("theme.base") == "dark" else "black"})
     
-    # Affichage du graphique dans Streamlit
     st.pyplot(fig)
-
-# Note de bas de page
-st.caption("⚠️️ Ces valeurs sont des estimations basées sur des facteurs d'émission par défaut. Elles devront être mises à jour avec les fiches PEP/ADEME spécifiques au projet.")
