@@ -31,7 +31,6 @@ with st.sidebar:
     with st.form("formulaire_acv"):
         w_panneaux = st.number_input("Modules PV (kWc)", min_value=0, value=1000, step=100)
         w_origine = st.selectbox("Origine des panneaux", options=["Chine", "Europe"])
-        w_onduleurs = st.number_input("Onduleurs (kW/kVA)", min_value=0, value=1000, step=100)
         w_stockage = st.number_input("Stockage (kWh)", min_value=0, value=0, step=50)
         w_cablage = st.number_input("Câblage (m)", min_value=0, value=100, step=50)
         w_pdl = st.number_input("Poste de livraison (nombre)", min_value=0, value=1, step=1)
@@ -44,12 +43,13 @@ fe_panneaux_actuel = FE_PANNEAUX_CHINE if w_origine == "Chine" else FE_PANNEAUX_
 
 # Calculs des impacts
 impact_panneaux = w_panneaux * fe_panneaux_actuel
-impact_onduleurs = w_onduleurs * FE_ONDULEURS_KW
+# L'impact des onduleurs est calculé par rapport à la puissance PV (kWc)
+impact_onduleurs = w_panneaux * FE_ONDULEURS_KW
 impact_stockage = w_stockage * FE_STOCKAGE_KWH
 impact_structure = w_panneaux * FE_STRUCTURE_KWC  # Calculé par kWc pour simplifier
 impact_cablage = w_cablage * FE_CABLAGE_M
-# L'impact du PDL est calculé par kVA, on utilise la puissance des onduleurs comme référence
-impact_pdl = w_pdl * (w_onduleurs * FE_PDL_KVA)
+# L'impact du PDL est calculé par kVA, on utilise la puissance des panneaux comme référence
+impact_pdl = w_pdl * (w_panneaux * FE_PDL_KVA)
 
 impact_total = sum([impact_panneaux, impact_onduleurs, impact_stockage, impact_structure, impact_cablage, impact_pdl])
 
